@@ -40,12 +40,14 @@ export default function App() {
   const [deck, setDeck] = useState<PitchDeck | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!idea.trim()) return;
     
     setIsLoading(true);
     setLoadingMsgIdx(0);
+    setError(null);
     
     const interval = setInterval(() => {
       setLoadingMsgIdx(prev => (prev + 1) % LOADING_MESSAGES.length);
@@ -54,9 +56,9 @@ export default function App() {
     try {
       const result = await generatePitch(idea);
       setDeck(result);
-    } catch (error) {
-      console.error("Pitch generation failed:", error);
-      alert("Failed to generate pitch. Please try again.");
+    } catch (err: any) {
+      console.error("Pitch generation failed:", err);
+      setError(err.message || "Failed to generate pitch. Please try again.");
     } finally {
       clearInterval(interval);
       setIsLoading(false);
@@ -127,6 +129,16 @@ export default function App() {
                   </button>
                 </div>
               </motion.div>
+
+              {error && (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-rose-400 text-sm font-bold bg-rose-400/10 py-3 px-6 rounded-lg border border-rose-400/20"
+                >
+                  {error}
+                </motion.p>
+              )}
 
               <div className="grid grid-cols-3 gap-12 pt-8">
                 <div className="space-y-1">

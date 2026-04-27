@@ -1,5 +1,5 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
+import { createServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -44,15 +44,11 @@ async function startServer() {
         return res.status(400).json({ error: "No idea provided" });
       }
 
-      // Using gemini-1.5-flash for stability
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: SYSTEM_PROMPT,
-      });
-
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: idea }] }],
-        generationConfig: {
+      const response = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: idea,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -148,9 +144,8 @@ async function startServer() {
         }
       });
 
-      const response = await result.response;
-      const text = response.text();
-      res.json(JSON.parse(text));
+      const responseText = response.text || "{}";
+      res.json(JSON.parse(responseText));
     } catch (error: any) {
       console.error("Pitch Generation Error:", error);
       res.status(500).json({ error: error.message || "Failed to generate pitch analysis" });
@@ -159,7 +154,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
+    const vite = await createServer({
       server: { middlewareMode: true },
       appType: "spa",
     });

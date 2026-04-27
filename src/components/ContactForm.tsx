@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Send, CheckCircle2 } from "lucide-react";
+import { submitContactForm } from "../lib/api";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -16,25 +17,14 @@ export default function ContactForm() {
     setStatus("loading");
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const data = await submitContactForm(formData);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setStatus("success");
-        setResponseMsg(data.message);
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        setStatus("error");
-        setResponseMsg("Something went wrong. Please try again.");
-      }
-    } catch (error) {
+      setStatus("success");
+      setResponseMsg(data.message);
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error: any) {
       setStatus("error");
-      setResponseMsg("Connection error. Please try again.");
+      setResponseMsg(error.message || "Connection error. Please try again.");
     }
   };
 
