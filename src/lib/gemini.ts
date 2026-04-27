@@ -1,8 +1,19 @@
+/// <reference types="vite/client" />
 import { GoogleGenAI, Type } from "@google/genai";
 import { PitchDeck } from "../types";
 
+const getApiKey = () => {
+  const key = (import.meta.env?.VITE_GEMINI_API_KEY as string) || (process.env.GEMINI_API_KEY as string);
+  if (!key) {
+    throw new Error(
+      "GEMINI_API_KEY is missing. Please set VITE_GEMINI_API_KEY or GEMINI_API_KEY in your environment variables."
+    );
+  }
+  return key;
+};
+
 const ai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || "" 
+  apiKey: getApiKey() 
 });
 
 const SYSTEM_PROMPT = `You are Startup-Lens AI — an elite startup pitch consultant who has helped hundreds of founders raise funding. You think like a seasoned investor and write like a world-class storyteller.

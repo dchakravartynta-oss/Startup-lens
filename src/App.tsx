@@ -17,11 +17,13 @@ import {
   ChevronLeft, 
   Zap,
   Globe,
-  Briefcase
+  Briefcase,
+  Mail
 } from "lucide-react";
 import { generatePitch } from "./lib/gemini";
 import { PitchDeck } from "./types";
 import PitchDeckDisplay from "./components/PitchDeckDisplay";
+import ContactForm from "./components/ContactForm";
 
 const LOADING_MESSAGES = [
   "Analyzing market dynamics and TAM...",
@@ -140,6 +142,23 @@ export default function App() {
                   <p className="text-[9px] uppercase font-black tracking-[0.3em] text-gray-600">Confidential</p>
                 </div>
               </div>
+
+              {/* Contact Section on Home */}
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="pt-24 max-w-2xl mx-auto space-y-12"
+              >
+                <div className="text-center space-y-4">
+                  <div className="flex justify-center">
+                    <Mail className="w-8 h-8 text-gold opacity-30" />
+                  </div>
+                  <h3 className="text-3xl font-serif italic text-white leading-none">Inquiry Protocol</h3>
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 font-bold">Connect with the elite consulting group</p>
+                </div>
+                <ContactForm />
+              </motion.div>
             </div>
           </motion.main>
 
@@ -223,6 +242,29 @@ export default function App() {
             </nav>
 
             {deck && <PitchDeckDisplay deck={deck} />}
+
+            {/* Post-Analysis Contact */}
+            <section className="max-w-4xl mx-auto py-24 px-8 border-t border-white/5 bg-gradient-to-b from-transparent to-gold/[0.02]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+                <div className="space-y-6">
+                  <h3 className="text-4xl font-serif italic text-white">Scale your vision.</h3>
+                  <p className="text-gray-400 leading-relaxed font-medium">
+                    The analysis above is the first step. Our elite partners specialize in turning these frameworks into real market dominance.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gold">
+                      <Sparkles className="w-4 h-4" /> Global Network
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-gold">
+                      <Zap className="w-4 h-4" /> Priority Execution
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white/[0.02] border border-white/10 p-8 rounded-2xl">
+                  <ContactForm />
+                </div>
+              </div>
+            </section>
 
             <footer className="max-w-7xl mx-auto py-12 px-8 border-t border-white/10 flex justify-between">
               <span className="text-[9px] text-gray-700 uppercase tracking-[0.2em] font-bold">Confidential Strategy // Enterprise Edition</span>

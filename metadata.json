@@ -1,6 +1,6 @@
 {
   "name": "Startup-Lens AI",
-  "description": "An elite startup pitch consultant that transforms your rough ideas into compelling, investor-ready pitch decks.",
+  "description": "An elite startup pitch consultant with full-stack support for contact inquiries and AI-powered strategy generation.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["Express Backend", "AI Pitch Consultant", "Contact Inquiry System"]
 }

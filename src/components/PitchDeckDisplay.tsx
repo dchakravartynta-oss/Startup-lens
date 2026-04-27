@@ -137,7 +137,6 @@ export default function PitchDeckDisplay({ deck }: Props) {
             <span className="text-[10px] uppercase tracking-[0.4em] text-gold font-black mb-6">Investability Index</span>
             <div className="text-8xl font-serif text-white mb-2 italic">
               {deck.investor_score.score}
-              <span className="text-2xl text-gray-600 not-italic">/10</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full mb-6 overflow-hidden">
               <motion.div 
