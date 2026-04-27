@@ -12,18 +12,3 @@ export async function submitContactForm(data: { name: string; email: string; mes
 
   return response.json();
 }
-
-export async function generatePitchApi(idea: string) {
-  const response = await fetch("/api/generate-pitch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ idea }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to generate pitch analysis");
-  }
-
-  return response.json();
-}
