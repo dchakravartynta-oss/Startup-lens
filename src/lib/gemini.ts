@@ -1,6 +1,14 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { PitchDeck } from "../types";
 
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
+  console.error("DEBUG: GEMINI_API_KEY is not defined in process.env");
+} else {
+  console.log("DEBUG: GEMINI_API_KEY is defined. Length:", apiKey.length);
+}
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 const SYSTEM_PROMPT = `You are Startup-Lens AI — an elite startup pitch consultant who has helped hundreds of founders raise funding. You think like a seasoned investor and write like a world-class storyteller.
@@ -17,8 +25,12 @@ STRICT RULES:
 
 export async function generatePitch(idea: string): Promise<PitchDeck> {
   try {
+    if (!apiKey) {
+      throw new Error("Gemini API key is not configured. Please add it to your environment variables or AI Studio settings.");
+    }
+
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-flash-latest",
       contents: idea,
       config: {
         systemInstruction: SYSTEM_PROMPT,
