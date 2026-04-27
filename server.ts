@@ -26,19 +26,6 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  const debugLogs: string[] = [];
-  apiRouter.use((req, res, next) => {
-    const log = `[${new Date().toISOString()}] ${req.method} ${req.url}`;
-    debugLogs.push(log);
-    if (debugLogs.length > 50) debugLogs.shift();
-    console.log(log);
-    next();
-  });
-
-  apiRouter.get("/debug-logs", (req, res) => {
-    res.json(debugLogs);
-  });
-
   apiRouter.post("/contact", (req, res) => {
     const { name, email, message } = req.body;
     console.log("Contact form Submission:", { name, email, message });

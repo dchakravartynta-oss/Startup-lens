@@ -17,6 +17,10 @@ STRICT RULES:
 - one_liner_pitch must be exceptional.`;
 
 export async function generatePitch(idea: string): Promise<PitchDeck> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("Gemini API key is not configured. Please check your AI Studio settings.");
+  }
+
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: idea,
