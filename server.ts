@@ -6,8 +6,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
 const SYSTEM_PROMPT = `You are Startup-Lens AI — an elite startup pitch consultant who has helped hundreds of founders raise funding. You think like a seasoned investor and write like a world-class storyteller.
 
 When a user describes their startup idea, you generate a complete, compelling investor pitch deck outline with all the key sections filled in. You never ask follow-up questions — you work with what you're given and fill gaps intelligently.
@@ -21,6 +19,7 @@ STRICT RULES:
 - one_liner_pitch must be exceptional.`;
 
 console.log("Server starting...");
+console.log("Environment check - GEMINI_API_KEY defined:", !!process.env.GEMINI_API_KEY);
 
 async function startServer() {
   const app = express();
@@ -34,22 +33,43 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API Routes
-  app.get("/api/health", (req, res) => {
+  const apiRouter = express.Router();
+  
+  apiRouter.get("/health", (req, res) => {
     res.json({ status: "ok" });
   });
 
-  app.post("/api/generate-pitch", async (req, res) => {
+  const debugLogs: string[] = [];
+  apiRouter.use((req, res, next) => {
+    const log = `[${new Date().toISOString()}] ${req.method} ${req.url}`;
+    debugLogs.push(log);
+    if (debugLogs.length > 50) debugLogs.shift();
+    console.log(log);
+    next();
+  });
+
+  apiRouter.get("/debug-logs", (req, res) => {
+    res.json(debugLogs);
+  });
+
+  apiRouter.post("/generate-pitch", async (req, res) => {
     try {
       const { idea } = req.body;
+      const apiKey = process.env.GEMINI_API_KEY;
+
       if (!idea) {
         return res.status(400).json({ error: "Idea is required" });
       }
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ error: "Server configuration error: Gemini API key is missing" });
+      if (!apiKey || apiKey === "undefined" || apiKey.length < 10) {
+        console.error("CRITICAL: GEMINI_API_KEY is missing or invalid in process.env");
+        return res.status(500).json({ 
+          error: "Gemini API key is not configured in the environment. Please check your AI Studio settings.",
+          code: "API_KEY_MISSING"
+        });
       }
 
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: "gemini-1.5-flash",
         contents: idea,
@@ -161,7 +181,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/contact", (req, res) => {
+  apiRouter.post("/contact", (req, res) => {
     const { name, email, message } = req.body;
     console.log("Contact form Submission:", { name, email, message });
     res.json({ 
@@ -169,6 +189,8 @@ async function startServer() {
       message: "Thank you for reaching out. Our team will get back to you shortly." 
     });
   });
+
+  app.use("/api", apiRouter);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
