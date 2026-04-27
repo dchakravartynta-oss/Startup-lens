@@ -3,9 +3,16 @@ import { PitchDeck } from "../types";
 
 // The platform injects GEMINI_API_KEY into process.env.GEMINI_API_KEY for use in the frontend.
 const getAIClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
+  // AI Studio injects GEMINI_API_KEY into process.env at runtime/preview.
+  // Vercel/Vite requires VITE_ prefix for environment variables to be accessible in the browser.
+  const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env.VITE_GEMINI_API_KEY;
+
   if (!apiKey || apiKey === "undefined") {
-    throw new Error("Gemini API key is not configured. Please add your key to the GEMINI_API_KEY secret in the AI Studio Settings menu.");
+    const isVercel = window.location.hostname.includes("vercel.app");
+    const errorMessage = isVercel
+      ? "Gemini API key is not configured. Please add VITE_GEMINI_API_KEY to your Vercel Environment Variables."
+      : "Gemini API key is not configured. Please add your key to the GEMINI_API_KEY secret in the AI Studio Settings menu.";
+    throw new Error(errorMessage);
   }
   return new GoogleGenAI({ apiKey: apiKey.trim().replace(/^["']|["']$/g, "") });
 };
