@@ -2,11 +2,11 @@ import express from "express";
 import { createServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 dotenv.config();
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const SYSTEM_PROMPT = `You are Startup-Lens AI — an elite startup pitch consultant who has helped hundreds of founders raise funding. You think like a seasoned investor and write like a world-class storyteller.
 
@@ -27,6 +27,10 @@ async function startServer() {
   app.use(express.json());
 
   // API Routes
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
+
   app.post("/api/contact", (req, res) => {
     const { name, email, message } = req.body;
     console.log("Contact form Submission:", { name, email, message });
@@ -47,93 +51,96 @@ async function startServer() {
         return res.status(500).json({ error: "Server configuration error: Gemini API key is missing" });
       }
 
-      const response = await genAI.models.generateContent({
+      const model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
-        contents: idea,
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
+        systemInstruction: SYSTEM_PROMPT,
+      });
+
+      const response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: idea }] }],
+        generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-              tagline: { type: Type.STRING },
+              tagline: { type: SchemaType.STRING },
               problem: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  statement: { type: Type.STRING },
-                  who_feels_it: { type: Type.STRING },
-                  how_big_is_it: { type: Type.STRING }
+                  statement: { type: SchemaType.STRING },
+                  who_feels_it: { type: SchemaType.STRING },
+                  how_big_is_it: { type: SchemaType.STRING }
                 },
                 required: ["statement", "who_feels_it", "how_big_is_it"]
               },
               solution: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  what_it_is: { type: Type.STRING },
-                  how_it_works: { type: Type.STRING },
-                  unique_angle: { type: Type.STRING }
+                  what_it_is: { type: SchemaType.STRING },
+                  how_it_works: { type: SchemaType.STRING },
+                  unique_angle: { type: SchemaType.STRING }
                 },
                 required: ["what_it_is", "how_it_works", "unique_angle"]
               },
               market: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  target_users: { type: Type.STRING },
-                  market_size: { type: Type.STRING },
-                  why_now: { type: Type.STRING }
+                  target_users: { type: SchemaType.STRING },
+                  market_size: { type: SchemaType.STRING },
+                  why_now: { type: SchemaType.STRING }
                 },
                 required: ["target_users", "market_size", "why_now"]
               },
               business_model: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  how_you_make_money: { type: Type.STRING },
-                  pricing_idea: { type: Type.STRING },
-                  growth_path: { type: Type.STRING }
+                  how_you_make_money: { type: SchemaType.STRING },
+                  pricing_idea: { type: SchemaType.STRING },
+                  growth_path: { type: SchemaType.STRING }
                 },
                 required: ["how_you_make_money", "pricing_idea", "growth_path"]
               },
               competition: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  existing_alternatives: { type: Type.STRING },
-                  your_edge: { type: Type.STRING }
+                  existing_alternatives: { type: SchemaType.STRING },
+                  your_edge: { type: SchemaType.STRING }
                 },
                 required: ["existing_alternatives", "your_edge"]
               },
               traction: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  current_stage: { type: Type.STRING },
-                  next_milestone: { type: Type.STRING }
+                  current_stage: { type: SchemaType.STRING },
+                  next_milestone: { type: SchemaType.STRING }
                 },
                 required: ["current_stage", "next_milestone"]
               },
               ask: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  what_you_need: { type: Type.STRING },
+                  what_you_need: { type: SchemaType.STRING },
                   what_it_will_be_used_for: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING }
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING }
                   }
                 },
                 required: ["what_you_need", "what_it_will_be_used_for"]
               },
-              one_liner_pitch: { type: Type.STRING },
+              one_liner_pitch: { type: SchemaType.STRING },
               investor_score: {
-                type: Type.OBJECT,
+                type: SchemaType.OBJECT,
                 properties: {
-                  score: { type: Type.STRING },
+                  score: { type: SchemaType.STRING },
                   strengths: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING }
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING }
                   },
                   risks: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING }
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING }
                   },
-                  verdict: { type: Type.STRING }
+                  verdict: { type: SchemaType.STRING }
                 },
                 required: ["score", "strengths", "risks", "verdict"]
               }
@@ -147,7 +154,7 @@ async function startServer() {
         }
       });
 
-      const responseText = response.text || "{}";
+      const responseText = response.response.text();
       res.json(JSON.parse(responseText));
     } catch (error: any) {
       console.error("GenAI Error:", error);
@@ -171,8 +178,10 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error("FATAL: Server failed to start", err);
+});
